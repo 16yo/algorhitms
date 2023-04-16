@@ -24,7 +24,7 @@ struct wedge {
 
 using wgraph = vector<vector<wedge>>;
 
-void dijkstra(vector<int64_t>& dp, vector<int64_t>& p, const int64_t s, const wgraph& g) {
+void dijkstra_slow(vector<int64_t>& dp, vector<int64_t>& p, const int64_t s, const wgraph& g) {
     int64_t n = g.size();
     dp[s] = 0;
     p[s] = s;
@@ -54,6 +54,35 @@ void dijkstra(vector<int64_t>& dp, vector<int64_t>& p, const int64_t s, const wg
     }
 }
 
+using item = pair<int64_t, int64_t>;
+void dijkstra_fast(vector<int64_t>& dp, vector<int64_t>& p, const int64_t s, const wgraph& g) {
+    int64_t n = g.size();
+    dp[s] = 0;
+    p[s] = s;
+    set<item> pq;
+    foreach(i, 0, n, 1)
+        pq.insert({dp[i], i});
+    vector<int8_t> visited(n, 0);
+    while (!pq.empty()) {
+        item el = *pq.begin();
+        pq.erase(pq.begin());
+        int64_t u = el.second;
+        visited[u] = 1;
+        for (wedge elem : g[u]) {
+            int64_t v = elem.v;
+            if (visited[v])
+                continue;
+            int64_t w = elem.w;
+            if (dp[u] + w < dp[v]) {
+                pq.erase({dp[v], v});
+                dp[v] = dp[u] + w;
+                p[v] = u;
+                pq.insert({dp[v], v});
+            }
+        }
+    }
+}
+
 int main(int argc, char** argv) {
 
     turn_std_sync_off();
@@ -72,7 +101,7 @@ int main(int argc, char** argv) {
     vector<int64_t> dp(n, INF);
     dp[s] = 0;
 
-    dijkstra(dp, prev, s, g);
+    dijkstra_fast(dp, prev, s, g);
 
 
     foreach(i, 0, n, 1)
